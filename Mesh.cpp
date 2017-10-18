@@ -17,7 +17,7 @@ Mesh::Mesh()
 		Vertex(glm::vec3(-0.5f ,0.0f ,0.5f)),
 		Vertex(glm::vec3(0.5f ,0.0f ,0.5f))
 	};
-
+	
 	//create mesh
 	initMesh(vertices, sizeof(vertices) / sizeof(vertices[0]));
 
