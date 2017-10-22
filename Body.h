@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "Force.h"
 #include "Mesh.h"
 
 class Body
@@ -52,10 +53,24 @@ public:
 	** OTHER METHODS
 	*/
 
+	void addForce(Force *f) { m_forces.push_back(f); }
+
 	// transformation methods
 	void translate(const glm::vec3 &vect);
 	void rotate(float angle, const glm::vec3 &vect);
 	void scale(const glm::vec3 &vect);
+
+	//sum of all forces applied to a body and return acceleration
+	glm::vec3 applyForces(glm::vec3 x, glm::vec3 v, float t, float dt)
+	{
+		glm::vec3 fAccumulator = glm::vec3(0.0f);
+		
+		for (auto &f : m_forces)
+		{
+			fAccumulator += f->apply(getMass(), x, v);
+		}
+		return fAccumulator / getMass();
+	}
 
 private:
 	Mesh m_mesh; // mesh used to represent the body
@@ -66,5 +81,8 @@ private:
 	glm::vec3 m_acc; // acceleration
 	glm::vec3 m_vel; // velocity
 	glm::vec3 m_pos; // position
+
+	std::vector<Force *> m_forces; //Force
+	
 };
 

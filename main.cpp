@@ -56,25 +56,27 @@ int main()
 	//initiate random seed
 	srand(time(NULL));
 	// create particle
-	Particle particles[20];
-	
-	for (int i=0; i<20; i++)
+	Particle particles[2];
+	for (int i=0; i<2; i++)
 	{
 		particles[i] = Particle::Particle();
-		particles[i].setVel(glm::vec3(rand() % 61 - 10, rand() % 50, rand() % 11 - 10));
-		//particles[i].setVel(glm::vec3(0.0f, 0.0f, 0.0f));
-		particles[i].setPos(glm::vec3(0.0f, 2.5f, 0.0f));
+		//particles[i].setVel(glm::vec3(rand() % 61 - 10, rand() % 50, rand() % 11 - 10));
+		particles[i].setVel(glm::vec3(0.0f, 0.0f, 0.0f));
+		particles[i].setPos(glm::vec3(0.0f, 10.0f, 0.0f));
 	}
 	
 	// time
 	GLfloat firstTime = (GLfloat)glfwGetTime();
 	glm::vec3 F;
-	glm::vec3 Fg = glm::vec3(0.0f, -9.8f, 0.0f);
+	Gravity g = Gravity(glm::vec3(0.0f, -9.8f, 0.0f));
 	glm::vec3 Fa = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 Ff = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 a;
 	float m = 0.05;
 	
+	Hook hook = Hook(&particles[0], &particles[1], 1.5, 1.5, 1.25);
+
+
 	//box dimensions
 	glm::vec3 box = glm::vec3(-2.5f, 5.0f, -2.5f);
 	glm::vec3 d = glm::vec3(5.0f, 5.0f, 5.0f);
@@ -131,7 +133,7 @@ int main()
 
 			// Calculate forces on particle to get acceleration
 			//F = Fg / 10 + Fa + Ff;
-			a = Fg / m;
+			
 
 			// Calculate new velocity and position
 			/*
@@ -141,20 +143,24 @@ int main()
 			*/
 			//repeat for every particle
 
+			
+			particles[1].addForce(&g);
 
 			
-			for (int j = 0; j < 20; j++)
+			for (int j = 0; j < 2; j++)
 			{
-
+				particles[j].addForce(&hook);
 				// Remember the Particle class has a velocity and position stored in it
 				// so you don't need to be making new variables to store them
 
 
 				//forward euler?
-				particles[j].setVel(particles[j].getVel() + dt * a);
-				particles[j].setPos(particles[j].getPos() + dt * particles[j].getVel());
+				particles[j].setAcc(particles[j].applyForces(particles[j].getPos(), particles[j].getVel(), t, dt));
+				
 				// Just use the setVel and setPos functions instead of this
-
+				//forward euler?
+				particles[j].setVel(particles[j].getVel() + dt * particles[j].getAcc());
+				particles[j].setPos(particles[j].getPos() + dt * particles[j].getVel());
 				
 
 
@@ -187,9 +193,7 @@ int main()
 						particles[j].setPos(glm::vec3(particles[j].getTranslate()[3][0], 0.0f, particles[j].getTranslate()[3][2]));
 						particles[j].setVel(glm::vec3(particles[j].getVel().x * 0.75, -particles[j].getVel().y * 0.9, particles[j].getVel().z * 0.75));
 						if (particles[j].getVel().y <= box.y - d.y)
-						{
-							Fg = glm::vec3(0.0f, 0.0f, 0.0f);
-							
+						{	
 							particles[j].setPos(glm::vec3(particles[j].getTranslate()[3][0], 0.0f, particles[j].getTranslate()[3][2]));
 						}
 					}
@@ -198,7 +202,6 @@ int main()
 					//if particle is below threshold of cones coneHeight
 					if (particles[j].getTranslate()[3][1] < conePos.y + coneHeight)
 					{
-						//printf("test" + radX);
 						//find radius at height x
 						radX = radBot + particles[j].getTranslate()[3][1] * ((radTop - radBot) / coneHeight);
 						radPart = radBot + particles[j].getTranslate()[3][1] * ((particles[j].getTranslate()[3][1] - radBot) / coneHeight);
@@ -210,8 +213,6 @@ int main()
 						//If particle is within the radius of the cone at coneHeight X 
 						else if (radPart < radX)
 						{
-							printf("rad" + radPart);
-							printf("" + radX);
 							particles[j].setVel(particles[j].getVel() + glm::vec3(0.0f, 2.0f, 0.0f));
 						}
 
